@@ -1,0 +1,114 @@
+\begin{frame}
+  \frametitle{A nice sketch! \cite{azure,azure/smp}}
+  
+  A smart contract among Owners and Buyers
+  \\[1em]
+  \includegraphics[scale=.35]{/home/emilio/mypapers/bt4orc/coordination2024/papers/images/marketplace2.png}
+  \\[1em]
+  \textbf{initially} buyers can make offers
+  \\\textbf{then}
+  \\\phantom{xxx} \textbf{either} an owner can accept an offer and the protocol stops
+  \\\phantom{xxx}	\textbf{or} the offer is rejected and the protocol restarts
+\end{frame}
+
+\begin{frame}
+  \frametitle{What did we just see?}
+  %
+  A \underline{smart contract} looks like
+
+  \itemit a \underline{choreographic model}
+  \begin{quote}
+	 global specifications determine the
+	 enabled actions along the evolution of the protocol
+  \end{quote}
+  \itemit a \underline{typestate}
+  \begin{quote}
+	 In OOP, \quo{can reflects how the legal operations on imperative
+		objects can change at runtime as their internal state
+		changes.}~\cite{gtwa14}
+  \end{quote}
+\end{frame}
+
+\begin{frame}
+  \frametitle{A new coordination model}
+  %
+  So, we saw an interesting model where
+  %
+  \itemit
+  distributed components coordinate through a global specification
+  %
+  \itemit which specifies which actions enabled along the computation
+  %
+  \itemit and it \quo{does not force} components to be cooperative!
+  %
+  \itemit \
+\end{frame}
+
+\begin{frame}
+  \frametitle{Let's look again at our sketch}
+    \begin{tikzpicture}
+	 \useasboundingbox (3cm,2cm)rectangle(-3.3cm,-1.8cm);
+	 \node (smp) {
+		\includegraphics[scale=.35]{/home/emilio/mypapers/bt4orc/coordination2024/papers/images/marketplace2.png}
+	 };
+	 \node<2> (txt) [right = .5cm of smp, fill=orange!20, opacity=.5, yshift=.2cm, text width = 7.3cm, scale = .9, align=left]{%
+		\begin{minipage}[t][5cm][t]{\textwidth}
+		  but...%
+		  \cons can buyers be owners too?%
+		  \note{ok\\[2em]}%
+		  \cons what's the difference between \underline{roles} and
+		  \underline{instances}?%
+		  \note{ok\\[2em]}%
+		  \cons what's the scope and and quantification?%
+		  \note{from~\cite{azure/smp}: “The transitions between the
+			 \textcolor{red}{Item Available} and the
+			 \textcolor{red}{Offer Placed} states can continue until the
+			 owner is satisfied with the offer made.”  so, after a
+			 rejection, the new offer must be from the original buyer or
+			 a new one?\\[2em]}%
+		  \cons when are transitions enabled?%
+		  \note{ok\\[2em]}%
+		  \cons how does the state of the contract change?%
+		  \note{should the price of the item remain unchanged when the
+			 owner invokes the Reject?}%
+		\end{minipage}
+	 };
+  \end{tikzpicture}
+\end{frame}
+
+\begin{frame}
+  \frametitle{...and by the way}
+
+  \begin{columns}[t]
+	 \begin{column}{.45\linewidth}
+		\includegraphics[scale=.2]{solidity_and_FM}
+
+		\url{https://medium.com/@solidity101/formal-verification-of-smart-contracts-in-solidity-192f2a4d0abd}
+	 \end{column}
+	 \begin{column}{.45\linewidth}
+		\includegraphics[scale=.2]{ethereum_FM}
+
+		\url{https://ethereum.org/en/developers/docs/smart-contracts/formal-verification/}
+	 \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Let's go formal!}
+  Our first attempt was to reuse \quo{our toolboxes}, but
+
+  \cons roles with multiple instances
+
+  \cons instances with many roles
+
+  \cons do the known notion of well-formedness make sense?
+
+  \cons data-awareness is crucial
+
+  \pause\vfill
+  So we had to came up with some new behavioural types.
+\end{frame}
+
+%%% Local Variables:
+%%% mode: LaTeX
+%%% TeX-master: "main"
+%%% End:

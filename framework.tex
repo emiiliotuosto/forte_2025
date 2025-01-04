@@ -1,0 +1,900 @@
+\newcommand\dunderline[3][-1pt]{{%
+  \sbox0{#3}%
+  \ooalign{\copy0\cr{\color{OliveGreen}\rule[\dimexpr#1-#2\relax]{\wd0}{#2}}}}
+}
+\renewcommand{\partyP}[1][]{\mathsf{\textcolor{BrickRed}{p}}_{#1}}
+\renewcommand{\roleR}[1][]{\mathsf{\textcolor{BrickRed}{R}}_{#1}}
+\renewcommand{\contractC}[1][]{\mathsf{\textcolor{CadetBlue}{c}}_{#1}}
+\renewcommand{\var}[1]{\mathsf{\textcolor{NavyBlue}{#1}}}
+\renewcommand{\exprE}[1][]{\mathsf{\textcolor{orange}{e}}_{#1}}
+
+\renewcommand{\emph}[1]{\dunderline[-1pt]{.5pt}{#1}}
+\newcommandx{\dafsmlabel}[5][1=\guardG, 2=\modparty, 3=f, 4={\cdots \varY[i] : T_i\cdots}, 5=\Assign, usedefault=@]{
+  \ensuremath{
+	 \ifempty{#1}{}{\{#1\}}\ #2 \triangleright \function{#3}(#4)\ #5
+  }
+}
+
+\tikzset{
+  legend/.style={
+	 fill=yellow!10,
+	 text width = 6.7cm
+  }
+}
+%
+\begin{frame}{Basic concepts and notation}
+  \emph{Participants} $\partyP,\partyPi,\hdots$
+  \vfill
+  have \emph{roles} $\roleR,\roleRi,\hdots$
+  \vfill
+  cooperate through a \emph{coordinator} $\contractC$ which is
+  \vfill
+  basically an object with fields and \quo{methods}:
+  \vfill
+  \begin{itemize}
+  \item $\varCX,\varCY,\hdots$ represent sorted \emph{state variables}
+	 of $\contractC$ (sort include 'participant' and usual data types
+	 such as 'int', 'bool', etc.)
+  \item $\functionCF,\functionCFi,\hdots$ which are the functions
+	 operation admitted by $\contractC$
+  \end{itemize}
+  \vfill
+  \emph{Assignment} $\varCX := \exprE$ where $\exprE$ is a
+  standard syntax of \emph{pure} expressions; let
+  $\Assign,\Assigni,\hdots$ range over finite sets of assignments
+  where each variable can be assigned at most once
+  \note{In every assignment~$\varCX\,{:=}\,\exprE$ data variables occurring in
+$\exprE$ must have the $\old$ qualifier to refer to their
+value %of $\varCX$
+before the assignments.
+\\[1em]{%
+  We adapt the mechanism based on the $\old$ keyword from the Eiffel
+  language~\cite{DBLP:books/ph/Meyer91} which, as explained
+  in~\cite{DBLP:books/ph/Meyer90} is necessary to render assignments
+  into logical formulae since e.g.,
+  $x=x+1 \Leftrightarrow \mathsf{False}$.
+  %
+  This will be used in \cref{def:consistency}.
+  % 
+}
+}
+\end{frame}
+
+\begin{frame}[t]{Data-Aware FSMs}
+  DAFSMs are finite-state machines whose transitions are decorated with specific labels
+  \\[1em]
+  Here are possible transitions of DAFSMs (see~\cite[Def. 1]{kmrt24} for the formal definition)
+  \\[1em]
+  \begin{tikzpicture}[dafsm]
+		\node (dummy) {};
+		\node<2->[state, right = 7cm of dummy] (q0) {};
+		\node<2->[legend, right = .3cm of q0] (c0) {
+		  initial state of the contract $\contractC$ freshly created by $\partyP$
+		  with state variables $\varCX[i]$ initialised by the assignments $\varCX[i] := \exprE[i]$
+		};
+		\note<2>{each state variable is declared and initialises with type-consistent expressions
+		  \\[1em]
+		  $\init$ is a \quo{build-in} function name
+		}
+		\node<3->[state] (q1) [below = 1.5cm of dummy] {};
+		\node<3->[state] (q1') [right = 7cm of q1] {};
+		\node<3->[legend, below = of c0, yshift=.8cm] (c1) {
+		  where $\guardG$ (ie a boolean expression) is a guard and \\
+		  $\modparty \bnfdef \new \bnfmid \any \bnfmid \partyP$ \\
+		  is a qualified participant invoking operation $\functionF$ with parameters $\varCY[i]$\\
+		  state variables are reassigned according to $\Assign$ if the invocation is successful
+		};
+		\note<3>{\\[1em]
+		  $\guardG$ predicates over state variables and formal parameters; like in Hoare triples, they are pre-conditions to be satisfied in order for the invocation to be enabled
+		  \\[1em]
+		  $\new$ specifies that $\partyP$ must be a fresh participant with role $\roleR$
+		  \\
+		  $\any$ qualifies $\partyP$ as an existing participant with role $\roleR$
+		  \\
+		  $\partyP$ we refer to a participant in the scope of a binder
+		  \\[1em]
+		  the variables occurring in the right-hand side of assignments in $\Assign$ are either state variables or parameters of the invocation
+		}
+		\node<4->[state] (q2) [below = 1.5cm of q1] {};
+		\node<4->[state,accepting] (q2') [right = 7cm of q2] {};
+		\node<4->[legend, below = of c1, yshift=.6cm] (c2) {
+		  accepting states denoted as usual
+		};
+		\path<2-> (dummy) edge[left] node[above, align=center] {
+		  \dafsmlabel[][{\new[\partyP][\roleR]}][\init][{\contractC, \cdots \varCX[i]:T_i \cdots}][{\{\cdots \varCX[i] := \exprE[i] \cdots\}}]
+		} (q0);
+		%
+		\path<3-> (q1) edge[right] node[sloped, anchor=center, above] {\dafsmlabel} (q1');
+		%
+		\path<4-> (q2) edge[right] node[sloped, anchor=center, above] {$\alabel$} (q2');
+	 \end{tikzpicture}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Exercise}
+  Give a DAFSM for the following contract protocol:
+
+  \note{let them play with qualified participants}
+\end{frame}
+\end{document}
+
+
+
+%
+%
+The set of \emph{guards} $\Guards$, ranged over by
+$\guardG,\guardGi, \hdots$, consists of constraints (i.e., boolean
+expressions) over data variables and function parameters.
+%
+Parameter \emph{declarations} are written as $\varX:T$ or
+$\partyP:\roleR$ to respectively assign data type $T$ to $\varX$ and
+role $\roleR$ to $\partyP$; we let $\Decl$ be the set of all
+declarations and $\decl$ to range over $\Decl$.
+%
+Lists of declarations are denoted by $\aVect\decl$ with the implicit
+assumption that the parameters in $\aVect\decl$ are pairwise distinct.
+
+The set $\modParties$ of \emph{qualified participants} consists of the
+terms generated by
+\[
+\modparty \bnfdef \new \bnfmid \any \bnfmid \partyP
+\]
+where both $\new[]$ and $\any[@][]$ are binders.
+%
+Intuitively, $\new$ specifies that variable $\partyP$ represents a
+fresh participant with role $\roleR$ while $\any$ qualifies $\partyP$
+as an existing participant with role $\roleR$.
+%
+With $\partyP$ we refer to a participant in the scope of a binder.
+
+Before its formal definition (cf.~\cref{def:dafsm}), we give 
+an intuitive account of our model.
+%
+We use FSMs as coordination protocols with a single coordinator~$\contractC$.
+%
+The transitions of an FSM represent the call to functions exposed by
+the coordinator $\contractC$ performed by participants.
+%
+Such calls may update the current control state (by means of state
+transitions)
+% \eKcomm[I think we should add that we care only about the update of variable in d0 as they are the states variables of $\contractC$]
+{ and the state of data variables (by mean of assignments).}
+% \MMcomm[d0 is the list of parameters of the construtor, not the state variables. State variables are the elements of $\Vars\contractC$, that we assume exist and we do not explicitly declare them.]{}
+Access to functions can be restricted to some participants (using
+participants variables and modifiers), and the availability of a
+function may depend on the current control or data states (using
+guards).
+%Every action, modelled as a transition, is triggered by a call of some participant, dubbed
+%\emph{caller}.
+A protocol starts in the initial state of the FSM specifying where the
+initial state of variables is set by the creator of the coordinator;
+intuitively, the creator may be thought of as an object in
+object-oriented programming created by invoking a constructor.
+
+\begin{definition}\label{def:dafsm}
+  Let $2^{\Assignments}_{\fin}$ be the set of all finite subsets of
+  $\Assignments$ and
+  $\labelset = \Guards \times \modParties \times \Functions \times
+  \aVect{\Decl} \times 2^{\Assignments}_{\fin}$ be the set of
+  \emph{labels}, ranged over by $\alabel$.
+  %
+  A \emph{data-aware finite state machine} (\modelname for short) is a
+  tuple
+  $\dafsm = (\states,\stateQ[0],\trans{},\finalStates,
+  \contractC,\new,\aVect{\decl[0]},\Assign[0])$ where:
+\begin{itemize}
+\item $(\states, \stateQ[0], \trans{}, \finalStates)$ is an FSM over
+  $\labelset$ (namely, $\states$ is finite set of \emph{states},
+  $\stateQ[0] \in \states$ is the \emph{initial state},
+  $\trans{} \subseteq \states \times \labelset \times \states$, and
+  $\finalStates \subseteq \states$ is the set of \emph{accepting}
+  states);
+\item $\contractC \in \Contracts$ is the coordinator name;
+\item for each transition label
+  $(\guardG, \modparty, \functionF, \aVect\decl, \Assign)$, if
+  $\varCX := \exprE \in \Assign$ then every data parameter occurring in $\exprE$ occurs in
+  $\aVect{\decl}$, $\exprE$ is well typed, and the data
+  variables occurring in the guards of any of the transitions of
+  $\dafsm$ belong to $\Vars[\contractC]$;
+\item $\new$ binds $\partyP$ to the participant creating the
+  coordinator;
+\item $\aVect{\decl[0]} \subseteq \aVect{\Decl}$ is the coordinator's list
+  of declarations, which we consider equivalent up-to
+  $\alpha$-renaming;
+\item $\Assign[0] \subseteq_{\fin} \Assignments$ is a set of
+  assignments (setting the initial values of the state variables).
+\end{itemize}
+% For each
+% $\stateS \trans{\guardG\;\modparty \triangleright
+%   \functionF(\aVect{\decl})\; \Assign} \stateSi$, every data variable
+% $\contractCi.\varX$ occurring in $\guardG$ or $\Assign$ is such that
+% $\contractCi = \contractC$.
+%
+A \emph{path} is a finite sequence of transitions
+$\stateS[0] \trans{\alabel[1]} \stateS[1] \cdots \stateS[n]
+\trans{\alabel[n]} \stateS[n+1]$ with $\stateS[0] = \stateQ[0]$.
+\end{definition}
+
+The next example introduces a convenient graphical notation for
+\modelnames in which guards on transitions are in curly brackets for
+readability; this notation is reminiscent of Hoare triples (guards are
+not to be confused with sets).
+%
+\begin{example}\label{ex:smp}
+  % \hsl[Maurizio's version]
+  % \[\begin{tikzpicture}[node distance= 3.79cm, dafsm]
+  % 		\node[state] (S0)      {$\stateQ[0]$};
+  % 		\node[state,draw=none] (S_) [left of=S0] {};
+  % 		\node[state]   (S1) [right of=S0] {$\stateQ[1]$};
+  % 		\node[state,accepting] (S2) [right of=S1]  {$\stateQ[2]$};
+  % 		\node[state]   (S01)[below of=S1] {$\stateQ[1]'$};
+  % 		\path
+  % 		(S_) edge node {\parbox{4.5cm}{\centering{$\new[\partyO][\roleO]\triangleright\init(\contractC,\IntType:\var{price})$\\
+  % 			$\{\varC{price} := \var{price}\}$}}} (S0)
+  % 		(S0) edge[left] node[above] {
+  % 			\parbox{4.5cm}{\centering{$\var{offer} > 0$\\
+  % 			$\new[\partyB][\roleB] \triangleright \functionC{makeOffer}(\IntType:\var{offer})$\\
+  % 			$\{\varC{offer} := \var{offer}\}$}}
+  % 		} (S1)
+  % 		(S1) edge node {
+  % 			\parbox{4cm}{\centering{$\partyO \triangleright \functionC{acceptOffer}()$}}
+  % 		} (S2)
+  % 		edge node[sloped, anchor=center, above] {
+  % 			\parbox{4cm}{\centering{$\partyO \triangleright \functionC{rejectOffer}()$}}
+  % 		} (S01)
+  % 		(S01) edge[bend right=80] node[sloped, anchor=center, above]{ \parbox{4cm}{\centering{$\var{offer} > 0$\\
+  % 		$\any[\partyB\!][\!\roleB]\!\triangleright\!\functionC{makeOffer}(\IntType\!:\!\var{offer})$\\
+  % 		$\{\varC{offer} := \var{offer}\}$}}
+  % 		} (S1)
+  % 		(S01) edge[bend left=60] node[sloped, anchor=center, above] {
+  % 			\parbox{4.5cm}{\centering{$\var{offer} > 0$\\
+  % 			$\new[\partyB][\roleB] \triangleright \functionC{makeOffer}(\IntType:\var{offer})$\\
+  % 			$\{\varC{offer} := \var{offer}\}$}}
+  % 		} (S1)
+  % 	 \end{tikzpicture}\]
+  % \hsl[eM's version]
+  Let 
+  %\ARcomm[question: guards between curly brackets? then transition labels really look like Hoare triples]{}
+  $\alabel[\text{new}] = \{\var{offer} > 0\}\ \new[\partyB][\roleB]
+  \triangleright \functionC{makeOffer}(\IntType:\var{offer})\
+  \{\varC{offer} := \var{offer}\}$ and
+  $\alabel[\text{ext}] = \{\var{offer} > 0\}\ \any[@][\partyB][\roleB]
+  \triangleright \functionC{makeOffer}(\IntType:\var{offer})\
+  \{\varC{offer} := \var{offer}\}$.
+  %
+  The \modelnames below represents the SMP protocol of \cref{sec:intro}.
+
+  \begin{center}
+  \begin{tikzpicture}[dafsm, node distance = 4cm]
+		\node (dummy) {};
+		\node[state, right = of dummy] (q0) {$\stateQ[0]$};
+		\node[state] (q1) [below of=q0, yshift=2.7cm] {$\stateQ[1]$};
+		\node[state] (q1') [left of=q1] {$\stateQ[1]'$};
+		\node[state,accepting] (q2) [right of=q1]  {$\stateQ[2]$};
+		\path (dummy) edge[left] node[above, text width=3.9cm, align=center] {
+		  $\new[\partyO][\roleO]\triangleright\init(\contractC,\IntType:\var{price})$
+		  $\{\varC{price} := \var{price}\}$} (q0);
+		\path (q0) edge node[rotate=90, xshift=.3cm, yshift=-.2cm] {$\alabel[\text{new}]$} (q1);
+		\path (q1) edge node {$\partyO \triangleright \functionC{acceptOffer}()$} (q2);
+		\path (q1) edge[right] node[sloped, anchor=center, above] {$\partyO \triangleright \functionC{rejectOffer}()$}
+		(q1')
+		(q1') edge[bend right=20] node[sloped, anchor=center, below, near start]{$\alabel[\text{ext}]$}
+		(q1.south west)
+		(q1') edge[bend left=30] node[sloped, anchor=center, above, near start] {$\alabel[\text{new}]$} (q1.north west);
+	 \end{tikzpicture}
+  \end{center}
+  % \begin{eqnarray*}
+  % 	\text{where}\quad \alabel[\text{new}] & =
+  % 	& \var{offer} > 0\
+  % 	\new[\partyB][\roleB] \triangleright \functionC{makeOffer}(\IntType:\var{offer})\
+  % 	\{\varC{offer} := \var{offer}\}
+  % 	\\
+  % 	 \alabel[\text{ext}] & =
+  % 	 & \var{offer} > 0\
+  % 		\any \partyB:\roleB \triangleright \functionC{makeOffer}(\IntType:\var{offer})\
+  % 		\{\varC{offer} := \var{offer}\}
+			% 	  \end{eqnarray*}
+  %
+  The initial state is $\stateQ[0]$ and it is graphically represented
+  by the source-less arrow entering it.
+  %
+  The label\footnote{%
+	We may omit writing guards when they are $\mathsf{True}$ and
+	assignments when they are empty as in the transitions from $\stateQ[1]$.
+	 %
+  } of this arrow represents the invocation from a new participant
+  $\partyO$ with the owner's role $\roleO$ to the constructor for a
+  coordinator $\contractC$ with a parameter $\var{price}$ of type
+  $\IntType$.
+  %
+  The set of assignments is the singleton initialising the coordinator's variable $\varC{price}$ to $\var{price}$.
+  
+  In $\stateQ[0]$, the only enabled function is
+  $\functionC{makeOffer}(\IntType:\var{offer})$; the first buyer
+  $\partyB$ invoking this function with an actual parameter $\var{offer}$, satisfying the guard $\var{offer} > 0$, moves the protocol to state $\stateQ[1]$ while recording the new offer in the coordinator state with the assignment
+  $\varC{offer} := \var{offer}$.
+  %
+  Contextually, the state of the coordinator records that the caller $\partyB$ plays role $\roleB$.
+
+  From state $\stateQ[1]$ only the owner $\partyO$ can make the protocol progress by either accepting or rejecting the offer.
+  %
+  In the former case, the protocol reaches the accepting state
+  $\stateQ[2]$ (graphically denoted with a doubly-circled node); in
+  the latter case, the protocol reaches state $\stateQ[1]'$ where
+  either an existing buyer or a new one can make further offers.
+  %
+  \finex
+\end{example}
+  %
+Notably, the DAFSM of \cref{ex:smp} refines the informal one in
+\cref{sec:intro} by more precisely specifying that offers can arrive either from previous buyers or new ones (cf. item~\ref{it:newold} in \cref{sec:intro}).
+
+\subsection{Well-formedness of \modelname}
+The restrictions in \cref{def:dafsm} concern single transitions;
+however, \modelnames can model meaningless and wrong behaviours, due
+to conditions spanning several transitions, \eg free occurrences of
+participant variables, lack of participants of a role or inconsistent
+guards. Below we spell-out those constraints after motivating them
+with simple examples.
+
+\medskip
+A first issue is the presence of free occurrences of participants names.
+\begin{example}\label{ex:free-party}
+  The \modelname \raisebox{6pt}{\tikz[node distance= 4cm, dafsm, scale=.85, transform shape]{
+		\node[state] (S0)      {$\stateS[0]$};
+		\node[state,draw=none] (S_) [left of=S0] {};
+		\node[state,accepting] (S1) [right of=S0] {$\stateS[1]$};
+		
+		\path
+		(S_) edge node {
+			$\new[\partyO][\roleO]\triangleright\init(\contractC)$} (S0)
+		(S0) edge node {
+			$\partyP\triangleright\functionCF()$}
+		 (S1);
+}
+}  %
+	is syntactically erroneous since the participant variable $\partyP$
+	is not bound.
+  %
+  \finex
+\end{example}
+
+In our model qualified participants of the form $\new$ and $\any$, and
+parameter declarations of the form $\partyP:\roleR$ act as binders.
+%
+In a \modelname all occurrences of participant variable should be in
+the scope of a binder to be meaningful.
+%
+\begin{definition}
+  A transition
+  $(\stateS[1],\guardG,\modparty,\functionCF,\aVect{\decl},
+	\Assign,\stateS[2])$
+  \emph{binds} $\partyP$ if and only if:
+  \[
+	\exists \roleR: \modparty = \new[\partyP][\roleR]\quad \lor\quad \modparty = \any \quad
+	\lor\quad \partyP:\roleR \in \aVect{\decl}
+  \]
+  The occurrence of $\partyP$ in a path
+  $\pathS = \pathS[1](\stateS[1],\guardG,\partyP,\functionCF,\aVect{\decl},
+   \Assign,\stateS[2])\pathS[2]$
+  is \emph{bound in $\pathS$} if there is a transition in $\pathS[1]$
+  binding $\partyP$ and it is \emph{bound in a \modelname $\dafsm$}
+  if all the paths of $\dafsm$ including the occurrence binding	it.
+  Finally, $\dafsm$ is \emph{closed} if all occurrences of participant
+  variables are bound in~$\dafsm$.
+\end{definition}
+%
+Another problem arises when the role of a qualified participant is empty.
+\begin{example}
+  If we bind the occurrence of $\partyP$ in the \modelname of
+  \Cref{ex:free-party} with the binder $\any[@][]$, we obtain the
+  closed \modelname
+  \[\dafsm[2] = \raisebox{6pt}{\begin{tikzpicture}[node distance= 4cm, dafsm]
+		
+		\node[state] (S0)      {$\stateS[0]$};
+		\node[state,draw=none] (S_) [left of=S0] {};
+		\node[state,accepting] (S1) [right of=S0] {$\stateS[1]$};
+		
+		\path
+		(S_) edge node {
+			$\new[\partyO][\roleO]\triangleright\init(\contractC)$} (S0)
+		(S0) edge node {
+			$\any\triangleright\functionCF()$}
+		 (S1);
+	  \end{tikzpicture}}
+	\]
+	%
+	However, we argue that $\dafsm[2]$ is ill-formed since $\roleR$ is
+	necessarily empty in $\stateS[0]$.
+	%
+	Hence no action is possible, and the execution gets stuck in the
+	initial state.
+	%
+	\finex
+\end{example}
+
+We now propose a simple syntactical check that avoids the problem of empty roles. Notice 
+that a sound and complete procedure for empty roles detection subsumes reachability, which may be undecidable depending on the chosen expressivity of constraints and expressions.
+
+\begin{definition}\label{def:participants}
+  A \emph{binder expands} role $\roleR$ if it is a qualified participant
+  of the form $\new[\partyP][\roleR]$ or a parameter declaration of the
+  form $\partyP:\roleR$.
+  %
+  A \emph{transition expands} role $\roleR$ if its binder expands role
+  $\roleR$.
+  %
+  A role $\roleR$ is \emph{expanded} in a path $\pathS$ if and only if:
+  \[
+    \pathS = \pathS[1] (\stateS[1],\guardG,\any[@][\partyP][\roleR],\functionCF,\aVect{\decl},\Assign,\stateS[2]) \pathS[2]
+    \implies \exists \transT \in \pathS[1]: \transT\;\text{expands}\; \roleR
+  \]
+  %
+  A \modelname $\dafsm$ \emph{expands} a role $\roleR$ if
+  every path of $\dafsm$ expands $\roleR$.
+  %
+  Finally, $\dafsm$ is (\emph{strongly}) \emph{empty-role free} if $\dafsm$ expands every role in $\dafsm$.
+\end{definition}
+%
+Despite the quantification over the possibly infinite set of all paths, empty-role freedom can be decided by considering only \emph{acyclic} paths, that is paths which contain at most one occurrence of each state. Clearly, there are only finitely many acyclic paths.
+%
+Notice that $\dafsm[2]$ above is not empty-role free.
+
+\medskip
+
+Finally, progress can be jeopardised if assignments falsify
+all the guards of the subsequent transitions, as in the next example.%
+\begin{example}
+  The \modelname below is both closed and empty-role free,
+  as the caller of $\functionCF$ is $\partyO$ which is bound by the
+  constructor, and there are no $\any[@][]$ modifiers.
+  \[\begin{tikzpicture}[node distance= 4.5cm, dafsm]
+		
+		\node[state] (S0)      {$\stateS[0]$};
+		\node[state,draw=none] (S_) [left of=S0] {};
+		\node[state,accepting] (S1) [right of=S0] {$\stateS[1]$};
+		
+		\path
+		(S_) edge node {
+			$\new[\partyO][\roleO]\triangleright\init(\contractC)\;
+			\{\varCX := 0\}$} (S0)
+		(S0) edge node {
+			$\{\mathsf{\varCX > 0}\}\;\partyO\triangleright\functionCF()$}
+		 (S1);
+	  \end{tikzpicture}
+	\]
+	Crucially, $\varCX > 0$ will never be satisfied at run-time because
+	$\varCX$ is initialised to $0$ and never changed.
+	%
+	So again every execution gets stuck in state $\stateS[0]$.
+	%
+	\finex
+\end{example}
+
+Similarly to empty roles, detecting inconsistencies is undecidable at
+least for expressive enough constraints and expressions. We therefore
+devise a syntactic technique amenable of algorithmic verification. The
+idea is to check that every transition $\transT$, regardless of the
+\quo{history} of the current execution, leads to a state which is either
+accepting or it has at least a transition enabled. This is intuitively
+accomplished by checking that the guard of $\transT$, after being
+updated according to the assignments of $\transT$, implies the
+disjunction of the guards of the outgoing transitions from the target
+state of $\transT$.  Before formally introduce our notion of
+consistency, we need a few auxiliary definitions.
+
+\begin{definition}
+  For all states $\stateS$, we define the \emph{progress constraint}
+  $\guardG[\stateS]$ as $\mathsf{True}$ when~$\stateS$ is accepting,
+  and otherwise as the disjunction of guards of the outgoing transitions of
+  $\stateS$.
+  % follows otherwise:
+% \[
+% \guardG[\stateS] = 
+% \bigvee_{(\stateS,\guardG,\modparty,\functionCF,\aVect{\decl},\assign,\stateSi) 
+% \in \trans{}} \hspace{-30pt} \guardG
+% \] 
+  Let $\varCX \not\in \Assign$ mean that for all
+  $\varCY := \exprE \in \Assign$, $\varX$ and $\varY$ differ, and
+  $\old$ $\varCX$ does not occur in expression~$\exprE$.
+
+		%
+  The \emph{progress constraint} of an assignment %
+  set $\Assign$ is
+  \[
+	 \guardG[\Assign] = \bigwedge_{(\varCX := \exprE) \in \Assign}
+	 \varCX = \exprE \land \bigwedge_{\varCX \not\in \Assign} \varCX =
+	 \old\; \varCX
+  \]
+\end{definition}
+
+In order to define our notion of consistency we need to work with
+closed formulae; for this reason we introduce universal and
+existential closures of logical propositions.
+%
+Given a set of variables $X = \{x_1,\ldots,x_n\}$, we write
+$\forall X \qst \phi$ for the proposition
+$\forall x_1, \ldots, \forall x_n \qst \phi$, and likewise for
+$\exists X \qst \phi$.
+
+
+In the following definition we assume for simplicity that each data
+parameter is declared at most once in the \modelname; this assumption
+does not affect generality since data parameters can be
+alpha-converted.\footnote{%
+  \thetool actually suitably alpha-converts data parameters to meet
+  this assumption.
+  %
+}
+\begin{definition}\label{def:consistency}
+  A transition
+  $\transT =
+  (\stateS,\guardG,\modparty,\functionCF,\aVect{\decl},\Assign,\stateSi)$
+  is \emph{consistent} if:%
+  \[
+	 \forall X \qst \exists Y \qst
+	 (\guardG\sigma \land \guardG[\Assign]) \implies \guardG[\stateSi]
+  \]
+  where
+  $X = \{\varCX, \old\ \varCX \sst \varCX \text{ is a contract
+	 variables of } \contractC\}$, $Y$ is the set of symbols for data
+  parameters occurring in $\aVect{\decl}$ or in any outgoing
+  transition from $\stateSi$, and $\sigma$ is the substitution such
+  that $\sigma : \varCX \mapsto \old\ \varCX$ for all contract
+  variables $\varCX$ of $\contractC$.
+
+  A \modelname $\dafsm$ is \emph{consistent} if so is every transition
+  of $\dafsm$.
+\end{definition}
+
+
+% t = (s, g, pi, c.f, d, B, s') is consistent if
+% \sigma replaces each c.x with old c.x
+% g \sigma and g_B implies g_s' 
+
+% x > 0 ... x = old x - old x 
+%
+% x > 3 ... x = 0
+
+
+% {\color{Bittersweet}\eMcomm[R2-14]{}
+%   \begin{example}\label{ex:usingold}
+% 	 The importance of the  $\old$ mechanism is demonstrated with
+% 	 the following \modelname (which does not use $\old$)
+% 	 \[\dafsm[4] = \raisebox{6pt}{\begin{tikzpicture}[node distance= 3cm, dafsm]
+			
+% 			\node[state] (S0)      {$\stateS[0]$};
+% 			\node[state,draw=none] (S_) [left of=S0] {};
+% 			\node[state] (S1) [right=4.3cm of S0] {$\stateS[1]$};
+% 			\node[state,accepting] (S2) [right of=S1] {$\stateS[2]$};
+			
+% 			\path
+% 			(S_) edge node {
+% 				$\new[\partyO][\roleO]\triangleright\init(\contractC)\;$} (S0)
+% 			(S0) edge node {
+% 				$\{\mathsf{True}\}\;\partyO\triangleright\functionCF[1]() \{\varCX := \varCX + 1\}$} (S1)
+% 			(S1) edge node[distance= 4cm] {
+% 				$\{\mathsf{True}\}\;\partyO\triangleright\functionCF[2]()$}
+% 			(S2);
+% 		\end{tikzpicture}
+% 	}
+% 	\]
+% 	The \aConsistency formula of $\dafsm[4]$ for the transition from
+% 	$\stateS[0]$ to $\stateS[1]$ is
+% 	$\forall \varCX : \mathsf{True} \land \varCX = \varCX + 1
+% 	\implies \mathsf{True}$.
+% 	%
+% 	The latter formula is evaluated as
+% 	$\mathsf{False} \implies \mathsf{True}$ which holds true.
+% 	%
+% 	We do not want this inconsistency case, therefore, by replacement,
+% 	the \aConsistency formula of $\dafsm[4]$ becomes
+% 	$\forall \varCX, \varCX_\old : \mathsf{True} \land \varCX =
+% 	\varCX_\old + 1 \implies \mathsf{True} $.
+% 	% 
+% 	\finex
+% \end{example}
+% }
+Non-determinism could be useful for some applications, %
+but most of the time \emph{determinism} is a desirable property (e.g.,
+SCs are usually required to be
+deterministic~\cite{ethereum_white_paper}).
+%
+Before the formal definition, we give a few examples illustrating how
+non-determinism may arise in \modelnames.
+% non-deterministic coordinator could be acceptable.
+% %
+% However, our main focus is on coordinators implemented as Smart
+% Contracts. Since Smart Contracts are applications that are run by
+% several nodes in a distributed and decentralised fashion, they are
+% often required to be deterministic. We therefore define a syntactic
+% analysis for \modelnames that implies determinism: such analysis can
+% of course be omitted in applications where non-deterministic behaviour
+% is instead allowed.  \eMcomm[new]{%
+%   We assume \quo{passive} coordinators, that is coordinators that do
+%   not interfere with the state of the protocol, which can be accessed
+%   only through function calls made by distributed participants.
+%   %
+%   This is typical for SCs where contracts coordinate
+%   several distributed nodes.
+%   %
+%   We therefore define a syntactic analysis for \modelnames that
+%   implies determinism: such analysis can of course be omitted to
+%   account for \quo{active} coordinators (e.g., to model orchestrated
+%   systems).
+%   %
+% }\MMcomm[Unclear how it relates to determinism: a passive coordinator may be non-deterministic,
+% and similarly an active coordinator can be deterministic.]{}
+% Active coordinators are not in the scope of this paper.
+
+\begin{example}
+  The \modelname
+  $\dafsm = \raisebox{10pt}{
+		\begin{tikzpicture}[dafsm, node distance= .5cm and 2cm]
+		\node[state] (S0)      {$\stateS[0]$};
+		\node[state,draw=none] (dummy) [above =of S0] {};
+		\node[state] (S1) [left =of S0] {$\stateS[1]$};
+		\node[state,accepting] (S2) [right =of S0] {$\stateS[2]$};
+		%
+		\path
+		(dummy) edge node[rotate = 90,left,yshift=.2cm] {
+			$\new[\partyO][\roleO]\triangleright\init(\contractC)$} (S0)
+		(S0) edge[bend right=10] node {$\alabel[1]$} (S1)
+		(S1) edge[bend right=10] node[sloped, anchor=center, below]{$\partyO\triangleright\functionCG()$} (S0)
+		(S0) edge node[above] {$\alabel[2]$} (S2);
+    \end{tikzpicture}
+	 }
+  $
+  is deterministic or not, depending on the labels $\alabel[1]$
+  and $\alabel[2]$.
+  %
+  Let us consider some cases.
+  \begin{description}
+  \item[{
+		$\alabel[1] = \alabel[2] = \partyO\triangleright\functionCG()$}]
+	 $\dafsm$ is non-deterministic because a call to function
+	 $\functionCF$ by $\partyO$ can lead either to $\stateS[1]$ or to
+	 $\stateS[2]$.
+  \item[{
+		$\alabel[1] = \new[\partyP][\roleR]\triangleright\functionCG()$
+		\text{and}
+		$\alabel[2] =
+		\any[@][\partyP][\roleR]\triangleright\functionCG()$}] $\dafsm$
+	 is deterministic intuitively because the next state is
+	 unambiguously determined by the caller of $\functionCG$: the protocol
+	 moves to $\stateS[1]$ or $\stateS[2]$ depending whether the call
+	 is performed by an existing or a new participant.
+  \item[{
+	 $\alabel[1] = \{\varX \leq
+	 10\}\;\partyO\triangleright\functionCG(\varX:\IntType)$ and
+	 $\alabel[2] = \{\varX >
+	 10\}\;\partyO\triangleright\functionCG(\varX:\IntType)$}]
+	 $\dafsm$ is deterministic because guard $\varX \leq 10$ leading to
+	 $\stateS[1]$ and guard $\varX > 10$ leading to $\stateS[2]$ are
+	 disjoint; therefore the next state is determined by the value of
+	 the parameter $\varX$, and every value enables at most one
+	 transition.
+  \end{description}
+  Also, taking $\alabel[1]$ as in the latter case and
+  $\alabel[2] = \{\varX \geq
+  10\}\;\partyO\triangleright\functionCG(\varX:\IntType)$ would make
+  $\dafsm$ non-deterministic because the guards of $\alabel[1]$ and of
+  $\alabel[2]$ are not disjoint therefore the next state is not
+  determined by the caller of $\functionCG$.
+  %
+  \finex
+\end{example}
+
+We now define a notion of \emph{strong determinism}, which is
+decidable and can be efficiently established.
+%
+To this aim, we first define the binary relation
+$\partyConfl \subseteq \modParties \times \modParties$ as the least
+symmetric relation satisfying:
+\begin{equation}\label{eq:confl}
+  \new[{\partyP}][{\roleR}]\partyConfl\partyP',
+  \quad
+  \new[{\partyP}][{\roleR}]\partyConfl \any[@][\partyP'][\roleO],
+  \qand
+  \roleR \neq \roleO \implies \any[@][\partyP][\roleR] \partyConfl \any[@][\partyP'][\roleO]
+\end{equation}
+Intuitively, if $\modparty[1]\;\partyConfl\;\modparty[2]$, then the
+participants in $\modparty[1]$ and $\modparty[2]$ \emph{differ}.
+%
+Indeed, the first two item just say that a new participant is
+necessarily different from an existing one. The third item says that
+two participant with different roles are necessarily different (since
+we require that every participant can have at most one role).
+
+We now define \emph{strong determinism} which basically ensures that
+different transitions calling the same function from a same
+participant have mutually exclusive guards.
+\begin{definition}\label{def:determinism}
+  A \modelname %$\dafsm$ 
+  is \emph{(strongly) deterministic} if for all of its
+  transitions $\transT[1] \neq \transT[2]$ %in $\dafsm$
+  from the same source state and calling the same function we have:
+  \[
+	 (\guardG[1] \land \guardG[2]) \implies (\modparty[1] \partyConfl
+	 \modparty[2])
+  \]
+  where, for $i \in \{1,2\}$, $\guardG[i]$ is the guard of
+  $\transT[i]$ and $\modparty[i]$ is the qualified participant of
+  $\transT[i]$.
+\end{definition}
+
+Finally, we can formalise our notion of well-formedness.
+\begin{definition}\label{def:wellformedness}
+	A \modelname is \emph{well-formed} when empty-role free,
+	consistent, and deterministic.
+\end{definition}
+
+\begin{example}
+  Consider the following well-formed \modelname.
+  \[
+			\begin{tikzpicture}[node distance= 2.5cm, dafsm]
+				\tikzset{
+					every node/.style={
+						rectangle,
+						align=center,
+						thin,
+						scale=.8,
+						font=\ttfamily
+					},
+					every path/.style={
+						draw,
+						thick,
+						rounded corners,
+						-latex
+					}
+				}
+				\node[state] (S0)      {$\stateS[0]$};
+				\node[state,draw=none] (S_) [left of=S0, xshift=-1cm] {};
+				\node[state,draw=none] (SC) [right of=S0] {};
+				\node[state] (S1) [above=of SC, yshift=-3cm, xshift=.5cm] {$\stateS[1]$};
+				\node[state] (S2) [below=of SC, yshift=3cm, xshift=.5cm] {$\stateS[2]$};=
+				\node[state] (S3) [right=of SC] {$\stateS[3]$};
+				\node[state,accepting] (S4) [right= of S3] {$\stateS[4]$};
+				
+				\path
+				(S_) edge node {
+					$\new[\partyB][\roleB]\triangleright\init(\contractC)\;$} 
+				(S0)
+				(S0) edge[bend left=10] node {$
+					\new[\partyO][\roleO]\triangleright\functionCF[1]()\;
+					$} (S1)
+				(S0) edge[bend right=10] node[below] {$
+						\new[\partyO][\roleR]\triangleright\functionCF[2]()\;
+					$} (S2)
+				(S1) edge[bend left=10] node {$
+					 \partyO\triangleright\functionCF[2]()
+					$} (S3)
+				(S2) edge[bend right=10] node[below] {$
+					 \partyO\triangleright\functionCF[2]()
+					$} (S3)
+				(S3) edge node {
+					$\partyO\triangleright\functionCF[3]()\;$} 
+				(S4);			
+			\end{tikzpicture}
+		 \]
+
+		 In fact, it is easy to see that all $\partyO$ is defined on each
+		 transition to and from state $\stateS[3]$, there are no
+		 (undefined) variables, and that consistency trivially holds.
+		 %
+		 \finex
+\end{example}
+
+	\begin{example}\label{ex:semactic-correct}
+	  The following \modelname is not well-formed
+%		\[\dafsm[5] = \raisebox{6pt}{
+%			\begin{tikzpicture}[node distance= 3cm, dafsm]
+%				\tikzset{
+%					every node/.style={
+%						rectangle,
+%						align=center,
+%						thin,
+%						scale=.8,
+%						font=\ttfamily
+%					},
+%					every path/.style={
+%						draw,
+%						thick,
+%						rounded corners,
+%						-latex
+%					}
+%				}
+%				\node[state] (S0)      {$\stateS[0]$};
+%				\node[state,draw=none] (S_) [left of=S0] {};
+%				\node[state] (S1) [right=of S0] {$\stateS[1]$};
+%				
+%				\node(dummy1)[state,draw=none] [above of=S1, yshift=-2.1cm] {};
+%				\node(dummy2)[state,draw=none] [below of=S1, yshift=2.1cm] {};
+%				
+%				\node[state,accepting] (S2) [right of=dummy1, yshift=-2cm, xshift =2cm] {$\stateS[2]$};
+%				\node[state,accepting] (S3) [right of=dummy2, yshift=2cm, xshift = 2cm] {$\stateS[3]$};
+%				
+%				\path
+%				(S_) edge node {
+%					$\new[\partyB][\roleB]\triangleright\init(\contractC)\;$} (S0)
+%				(S0) edge node {
+%					$\ \any[@][\partyB_2][\roleB] \triangleright\functionCF[1]()$} (S1);
+%				
+%				\path[-] (S1) -- (dummy1.center);
+%				\path[-] (S1) -- (dummy2.center);
+%				\path
+%				(dummy1.center) |-	(S2);
+%				
+%				\path
+%				(dummy2.center) |-	(S3);
+%				
+%				
+%				\node(dummy21c)[right = .3cm of dummy1, yshift = 0.5cm]{
+%					$ \partyB\triangleright\functionCF[2]()$
+%				};
+%				\node(dummy21c)[right = .3cm of dummy2]{
+%					$ \partyB_2\triangleright\functionCF[2]()$
+%				};
+%				
+%				\node[state] (S1) [right=of S0] {$\stateS[1]$};
+%				
+%			\end{tikzpicture}
+%		}
+%		\]
+	  \[
+		 \begin{tikzpicture}[node distance= 2cm, dafsm]
+				
+				\node[state] (S0)      {$\stateS[0]$};
+				\node[state,draw=none] (S_) [left of=S0, xshift = -2.5cm] {};
+				\node[state] (S1) [right=of S0] {$\stateS[1]$};
+				\node[state,accepting] (S2) [right of=S1 , xshift = 1cm] {$\stateS[2]$};
+				
+				\path
+				(S_) edge node {
+					$\new[\partyO][\roleO]\triangleright\init(\contractC)\;\{\varCX := 1\}$} (S0)
+				(S0) edge node {
+					$ \partyO\triangleright\functionCF[1]()$} (S1)
+				(S1) edge node {
+					$\{\mathsf{\varCX > 0}\}\;\partyO\triangleright\functionCF[2]()$}
+				(S2);
+			\end{tikzpicture}
+		\]
+		in fact, the transition from $\stateS[0]$
+		violates~\cref{def:consistency} since $\mathsf{True}$ does not
+		imply $\varCX > 0$ hinting that the protocol could get stuck in
+		state $\stateS[1]$.
+		%
+		However, this % is not possible
+    never happens because $\varCX$ is initially set to $1$
+		and never changed, hence the transition from $\stateS[1]$ would be enabled
+		when the protocol lands in $\stateS[1]$.
+	  %
+		\finex
+	\end{example}
+
+
+
+
+%\hsl
+%\subsection{Partipant \modelname}
+%Participant checker checks if the caller is introduced in the current
+% transition or in every path from the initial state to the 'from'
+% state of the current transition. This verification is crucial to
+% ensure that the FSM adheres to the rules governing participant
+% introduction, thus maintaining its logical coherence. The process
+% involves checking for the caller's direct introduction or through
+% associated roles in the current transition and then analyzing all
+% paths leading to the current transition's 'from' state to verify the
+% caller's introduction at some point along each path.
+
+%\begin{equation}
+%	\text{t} = \left( C \in N_{T_c} \right) \lor \left( \bigwedge_{p \in P} \left( \exists t \in T_p : C \in N_t \right) \right)
+%\end{equation}
+
+
+
+%%% Local Variables:
+%%% mode: LaTeX
+%%% TeX-master: "main"
+%%% End:

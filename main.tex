@@ -1,0 +1,160 @@
+\PassOptionsToPackage{svgnames,dvipsnames}{xcolor}
+\documentclass[aspectratio=169,compress,dvipsnames
+%,handout%,draft
+]{beamer}
+
+\usepackage{titlecaps}
+% \usepackage{stmaryrd}
+\usepackage{extarrows}
+\usepackage{pifont}
+\usepackage{xurl}
+
+\input{slides_settings}
+\input{macros_util}
+\input{ggmacros}
+\input{~/mypapers/bt4orc/coordination2024/papers/macro_dafsm.tex}
+
+\date{}
+\setbeamertemplate{bibliography item}{\insertbiblabel}
+\setbeamertemplate{bibliography entry title}{}
+\setbeamertemplate{bibliography entry location}{}
+\setbeamertemplate{bibliography entry note}{}
+
+\title{
+   Automata for smart contracts...and more
+}
+
+\author{
+  \textcolor{orange}{Emilio Tuosto} \textcolor{blue!20}{@ GSSI}
+  \\[2em]
+  joint work with
+  \\[2em]  \vfill
+  \begin{tabular}[c]{ccc}
+	 Maurizio Murgia
+	 &
+		Elvis Gerardin Konjoh Selabi
+		& 
+		Antonio Ravara
+	 \\
+	 \textcolor{blue!20}{@GSSI}
+	 &
+		\textcolor{blue!20}{@GSSI \& UniCam}
+	 &
+		\textcolor{blue!20}{@NOVA}
+  \end{tabular}
+  \\[2em]
+  A tutorial @ FORTE 2025, Lille 
+}
+
+\graphicspath{{figures/}{../images/}}
+
+\begin{document}
+
+\sloppy
+% \input{wip} \end{document}
+
+\makeatletter
+\newcommandx{\chrfill}[2][1={$\cdot$},2=gray]{%
+    \leavevmode\cleaders\hb@xt@.44em{\hss{\textcolor{#2}{#1}}\hss}\hfill\kern\z@
+}
+\makeatother
+\newcommand{\myitem}[3][\pause]{
+  #2\textcolor{gray}{\chrfill}\textcolor{NavyBlue}{#3}\\\vfill#1
+}
+
+\newcommand{\mytab}[1][xxx]{\phantom{#1}}
+
+\newcommandx{\itemit}[2][1=0,2=xxx,usedefault=@]{
+  \ifthenelse{\equal{#1}{0}}{\vfill}{\\[#1]}
+  \mytab[#2]
+}
+
+\newcommand\pros{\itemit\ding{51}\xspace}
+\newcommand\cons{\itemit\ding{55}\xspace}
+
+% \transdissolve[duration=5]
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}
+  \frametitle{What's up doc?}
+  \Large\centering
+  \begin{minipage}[c]{.7\linewidth}
+	 \myitem{Prologue}{An inspiring initiative}
+	 \myitem{Act I}{A coordination framework}
+	 \myitem{Act II}{A tool}
+	 \myitem{Act III}{A little exercise}
+	 \myitem[]{Epilogue}{Work in progress}
+  \end{minipage}
+\end{frame}
+
+\partslide{
+  \begin{center}
+	 -- Prologue --
+	 \\[1em]
+	 [ \textcolor{NavyBlue}{An inspiring initiative} ]
+  \end{center}
+}
+\input{prelude}
+
+\partslide{
+  \begin{center}
+	 -- Act I --
+	 \\[1em]
+	 [ \textcolor{NavyBlue}{A coordination framework} ]
+  \end{center}
+}
+\input{framework}
+
+\partslide{
+  \begin{center}
+	 -- Act II --
+	 \\[1em]
+	 [ \textcolor{NavyBlue}{A tool} ]
+  \end{center}
+}
+\input{trac}
+
+\partslide{
+  \begin{center}
+	 -- Act III --
+	 \\[1em]
+	 [ \textcolor{NavyBlue}{A little exercise} ]
+  \end{center}
+}
+\input{exe}
+
+%\hide{}% hide close outermost
+
+\partslide{
+  \begin{center}
+	 -- Epilogue --
+	 \\[1em]
+	 [ \textcolor{NavyBlue}{Work in progress} ]
+  \end{center}
+}
+\input{wip}
+
+
+\partslide{
+  \begin{center}
+    Thank you
+  \end{center}
+}
+
+\begin{frame}[allowframebreaks]
+  \frametitle{References}
+  \bibliographystyle{abbrv}
+  \bibliography{/home/emilio/Dropbox/latex/all.bib}
+\end{frame}
+
+		
+\end{document}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:
