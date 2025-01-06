@@ -1,24 +1,16 @@
 \PassOptionsToPackage{svgnames,dvipsnames}{xcolor}
-\documentclass[aspectratio=169,compress,dvipsnames
-%,handout%,draft
+\documentclass[aspectratio=169, compress
+%, dvipsnames, handout, draft
 ]{beamer}
-
-\usepackage{titlecaps}
-% \usepackage{stmaryrd}
-\usepackage{extarrows}
-\usepackage{pifont}
-\usepackage{xurl}
 
 \input{slides_settings}
 \input{macros_util}
 \input{ggmacros}
 \input{~/mypapers/bt4orc/coordination2024/papers/macro_dafsm.tex}
 
+\overfullrule=0mm
+
 \date{}
-\setbeamertemplate{bibliography item}{\insertbiblabel}
-\setbeamertemplate{bibliography entry title}{}
-\setbeamertemplate{bibliography entry location}{}
-\setbeamertemplate{bibliography entry note}{}
 
 \title{
    Automata for smart contracts...and more
@@ -53,24 +45,6 @@
 \sloppy
 % \input{wip} \end{document}
 
-\makeatletter
-\newcommandx{\chrfill}[2][1={$\cdot$},2=gray]{%
-    \leavevmode\cleaders\hb@xt@.44em{\hss{\textcolor{#2}{#1}}\hss}\hfill\kern\z@
-}
-\makeatother
-\newcommand{\myitem}[3][\pause]{
-  #2\textcolor{gray}{\chrfill}\textcolor{NavyBlue}{#3}\\\vfill#1
-}
-
-\newcommand{\mytab}[1][xxx]{\phantom{#1}}
-
-\newcommandx{\itemit}[2][1=0,2=xxx,usedefault=@]{
-  \ifthenelse{\equal{#1}{0}}{\vfill}{\\[#1]}
-  \mytab[#2]
-}
-
-\newcommand\pros{\itemit\ding{51}\xspace}
-\newcommand\cons{\itemit\ding{55}\xspace}
 
 % \transdissolve[duration=5]
 

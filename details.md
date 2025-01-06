@@ -1,5 +1,5 @@
 Title:
-a. A Smart contracts-Inspired Coordination Model
+a. A Coordination Model Inspired by Smart Contracts
 b. Automata for smart contracts...and more
 c. Playing on Smart Contracts with a Formal Framework
 d. A Formal Framework for Data-Aware Coordination of Distributed Components
