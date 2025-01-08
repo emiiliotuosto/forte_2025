@@ -1,13 +1,17 @@
-\renewcommand{\partyP}[1][]{\mathsf{\textcolor{BrickRed}{p}}_{#1}}
-\renewcommand{\roleR}[1][]{\mathsf{\textcolor{BrickRed}{R}}_{#1}}
+\renewcommand{\partyP}[1][p]{\mathsf{\textcolor{BrickRed}{#1}}}
+\renewcommand{\roleR}[1][R]{\mathsf{\textcolor{BrickRed}{#1}}}
+\renewcommand{\roleO}{\roleR[O]}
+\renewcommand{\roleB}{\roleR[B]}
+\renewcommand{\partyB}{\partyP[b]}
+\renewcommand{\partyO}{\partyP[o]}
 \renewcommand{\contractC}[1][]{\mathsf{\textcolor{CadetBlue}{c}}_{#1}}
 \renewcommand{\var}[1]{\mathsf{\textcolor{NavyBlue}{#1}}}
 \renewcommand{\exprE}[1][]{\mathsf{\textcolor{orange}{e}}_{#1}}
 %
 \begin{frame}[<+->]{Basic concepts and notation}
-  \emph{Participants} $\partyP,\partyPi,\hdots$
+  \emph{Participants} $\partyP,\partyP',\hdots$
   \vpause
-  have \emph{roles} $\roleR,\roleRi,\hdots$
+  have \emph{roles} $\roleR,\roleR',\hdots$
   \vpause
   cooperate through a \emph{coordinator} $\contractC$ which is
   \vpause
@@ -20,24 +24,26 @@
   \item $\functionCF,\functionCFi,\hdots$ which are the functions
 	 operation admitted by $\contractC$
   \end{itemize}
-  \vpause
-  \emph{Assignment} $\varCX := \exprE$ where $\exprE$ is a standard
-  syntax of \emph{pure} expressions; let $\Assign,\Assigni,\hdots$
-  range over finite sets of assignments where each variable can be
-  assigned at most once \note{In every
-	 assignment~$\varCX\,{:=}\,\exprE$ data variables occurring in
-	 $\exprE$ must have the $\old$ qualifier to refer to their
-	 value %of $\varCX$
-	 before the assignments.  \\[1em]{%
-		We adapt the mechanism based on the $\old$ keyword from the
-		Eiffel language~\cite{DBLP:books/ph/Meyer91} which, as explained
-		in~\cite{DBLP:books/ph/Meyer90} is necessary to render
-		assignments into logical formulae since e.g.,
-		$x=x+1 \Leftrightarrow \mathsf{False}$.
-		%
-		This will be used in \cref{def:consistency}.
-		%
-	 }
+  \vpause \emph{Assignment} $\varCX := \exprE$ where $\exprE$ is a
+  standard syntax of \emph{pure} expressions\footnote{Plus the $\old$
+	 qualifier for state variables as
+	 in~\cite{DBLP:books/ph/Meyer90,DBLP:books/ph/Meyer91}}; let
+  $\Assign, \Assigni, \hdots$ range over finite sets of assignments
+  where each variable can be assigned at most once
+  %
+  \note{%
+	 In every assignment~$\varCX := \exprE$ data variables occurring in
+	 $\exprE$ must have the $\old$ qualifier to refer to their value
+	 before the assignments.
+	 \\[1em]
+	 We adapt the mechanism based on the $\old$ keyword from the Eiffel
+	 language~\cite{DBLP:books/ph/Meyer91} which, as explained
+	 in~\cite{DBLP:books/ph/Meyer90} is necessary to render assignments
+	 into logical formulae since e.g.,
+	 $x=x+1 \Leftrightarrow \mathsf{False}$.
+	 %
+	 This will be used in \cref{def:consistency}.
+	 %
   }
 \end{frame}
 
@@ -157,11 +163,14 @@
 \end{frame}
 
 \begin{frame}{Closed \modelnames}
-  \emph{Binders}: parameter declaration in function call, $\new$, and $\any$
+  \emph{Binders:} parameter declarations in function call, $\new$, and $\any$
   \vpause
   $\partyP$ is \emph{bound} in \dafsmtx if, for some role $\roleR$,
-  $\modparty = \new[\partyP][\roleR]$ \qand[or] $\modparty = \any$
-  \qand[or] there is $i$ s.t. $\varY[i] = \partyP$ and $T_i = \roleR$
+  \[
+	 \modparty = \new[\partyP][\roleR] \qand[or]
+	 \modparty = \any \qand[or]
+	 \text{there is } i \text{ s.t. } \varY[i] = \partyP \text{ and } T_i = \roleR
+  \]
   \vpause
   The occurrence of $\partyP$ is \emph{bound} in a path
   $\pathS \ \dafsmtx[@][@][\partyP] \ \pathS'$ if $\partyP$ is bound in a
@@ -190,24 +199,26 @@
   \dafsmtx[@][@][@][@][@][@][\stateS]
   \[
   	 \forall (\varCX, \old\ \varCX)_{\varCX \in X} \
-	 \exists \ldots ,\varY[i],\ldots \qst
+	 \exists (y)_{y \in Y}\qst
 	 (\guardG\subst{\old\ \varCX}{\varCX}_{\varCX \in X} \ \land\ \guardG[\Assign]) \implies \guardG[\stateS]
 	 \qqand[where]
   \]
   \begin{align*}
+	 Y = & \{y \sst \esist  i \qst y = y_i \text{ or $y$ is a parameter of an outgoing transition of } \stateS\}
+	 \\[.5em]
 	 \guardG[\stateS] = &
 							  \begin{cases}
 								 \mathsf{True} & \text{if } \stateS \text{ is accepting}
 								 \\
 								 \text{the disjunction of guards of the outgoing transitions of } \stateS & \text{otw}
 							  \end{cases}
-	 \\[1em]
+	 \\[.5em]
 	 \guardG[\Assign] = & \bigwedge_{(\varCX := \exprE) \in \Assign}
 								 \varCX = \exprE \ \land\ \bigwedge_{\varCX \not\in \Assign} \varCX =
 								 \old\; \varCX
 	 \\
 							  & \qand[with ]\varCX \not\in \Assign \iff
-								 (\varCY := \exprE) \in \Assign \implies \varX \neq \varY \qand \old\ \varCX \text{does not occur in $\exprE$}
+								 (\varCY := \exprE) \in \Assign \implies \varX \neq \varY \qand \old\ \varCX \text{ does not occur in $\exprE$}
   \end{align*}
   \vfill
 \end{frame}
@@ -229,7 +240,7 @@
 		\guardG[1] \land \guardG[2] \implies \modparty[1] \partyConfl	 \modparty[2]
 	 \]
 	 \note{transitions from the same source state and calling the same function}
-	 where $\partyConfl$ is the least binary symmetric relation s.t.
+	 where $\_\partyConfl\_$ is the least binary symmetric relation s.t.
 	 \[
 		\new \partyConfl \modparty
 		\qand \new \partyConfl \any[\partyP'][\roleR']
@@ -256,286 +267,116 @@
 	 }
   }
   $
-
+  \vfill
   is deterministic or not, depending on the labels $\alabel[1]$
   and $\alabel[2]$.
-  %
+  \vfill
   \begin{enumerate}
-  \item Is it the case that $\dafsm$ is not deterministic when
+  \item Is it the case that $\dafsm$ is not deterministic whenever
 	 $\alabel[1] = \alabel[2]$?
   \item Find two labels $\alabel[1]$ and  $\alabel[2]$ that make $\dafsm$ deterministic
   \item Find two labels $\alabel[1] \neq \alabel[2]$ that make $\dafsm$ non-deterministic 
   \end{enumerate}
   \note{
-  \begin{enumerate}
-  \item no: eg for $\alabel[1] = \alabel[2] = \new$ $\dafsm$ is
-	 deterministic
-  \item $\alabel[1] = \alabel[2] = \dafsmlabel[][\new][@][@][]$ make
-	 $\dafsm$ deterministic because the next state is unambiguously
-	 determined by the caller which is fresh on both transitions
-  \item
-	 $\alabel[1] = \dafsmlabel[\varX \leq 10][\partyP][@][\varX:\IntType][]$ and
-	 $\alabel[2] = \dafsmlabel[\varX \geq 10][\partyP][@][\varX:\IntType][]$ make
-	 $\dafsm$ non-deterministic because the guards of $\alabel[1]$ and of
-  $\alabel[2]$ are not disjoint therefore the next state is not
-  determined by the caller of $\functionCG$.
- because guard $\varX \leq 10$ leading to
-	 $\stateS[1]$ and guard $\varX > 10$ leading to $\stateS[2]$ are
-	 disjoint; therefore the next state is determined by the value of
-	 the parameter $\varX$, and every value enables at most one
-	 transition.
-  \end{enumerate}
-  Also, taking $\alabel[1]$ as in the latter case and
-  $\alabel[2] = \{\varX \geq
-  10\}\;\partyO\triangleright\functionCG(\varX:\IntType)$ would make
-  $\dafsm$ non-deterministic}
+	 \begin{enumerate}
+	 \item no: eg for $\alabel[1] = \alabel[2] = \new$ $\dafsm$ is
+		deterministic
+	 \item $\alabel[1] = \alabel[2] = \dafsmlabel[][\new][@][@][]$ make
+		$\dafsm$ deterministic because the next state is unambiguously
+		determined by the caller which is fresh on both transitions
+	 \item
+		$\alabel[1] = \dafsmlabel[\varX \leq
+		0][\partyP][@][\varX:\IntType][]$ and
+		$\alabel[2] = \dafsmlabel[\varX \geq
+		-1][\partyP][@][\varX:\IntType][]$ make $\dafsm$
+		non-deterministic because the guards of $\alabel[1]$ and of
+		$\alabel[2]$ are not disjoint therefore the next state is not
+		determined by the caller
+	 \end{enumerate}
+  }
 \end{frame}
 
 \begin{frame}{Well-formedness}
-  A \modelname is \emph{well-formed} when
+  A \modelname is \emph{well-formed} when it is
 
-  \itemit it is empty-role free
+  \itemit[@][3] empty-role free
   
-  \itemit  it is consistent, and
+  \itemit[@][5] consistent, and
 
-  \itemit  it is deterministic
+  \itemit[@][7] deterministic
 \end{frame}
 
-\hidden{
 
-\begin{example}
-  The \modelname
-  $\dafsm = \raisebox{10pt}{
-		\begin{tikzpicture}[dafsm, node distance= .5cm and 2cm]
-		\node[state] (S0)      {$\stateS[0]$};
-		\node[state,draw=none] (dummy) [above =of S0] {};
-		\node[state] (S1) [left =of S0] {$\stateS[1]$};
-		\node[state,accepting] (S2) [right =of S0] {$\stateS[2]$};
-		%
-		\path
-		(dummy) edge node[rotate = 90,left,yshift=.2cm] {
-			$\new[\partyO][\roleO]\triangleright\init(\contractC)$} (S0)
-		(S0) edge[bend right=10] node {$\alabel[1]$} (S1)
-		(S1) edge[bend right=10] node[sloped, anchor=center, below]{$\partyO\triangleright\functionCG()$} (S0)
-		(S0) edge node[above] {$\alabel[2]$} (S2);
-    \end{tikzpicture}
+\begin{frame}{Exercise: well-formedness}
+  Which of the following \modelname is well-formed?
+
+  \vfill
+  
+  \begin{tikzpicture}[dafsm, node distance = 3cm]
+	 \node[state] (S0)      {$\stateS[0]$};
+	 \node[] (S_) [left = 2.5cm of S0] {};
+	 \node[state] (S1) [below right =of S0,yshift=2cm] {$\stateS[1]$};
+	 \node[state] (S2) [above right =of S0,yshift=-2cm] {$\stateS[2]$};=
+	 \node[state] (S3) [right=4.5cm of S0] {$\stateS[3]$};
+	 \node[state,accepting] (S4) [right= of S3] {$\stateS[4]$};
+	 %
+	 \path
+	 (S_) edge node {\dafsmlabel[][{\new[\partyB][\roleB]}][\init][\contractC][]}
+	 (S0)
+	 (S0) edge[bend right=10] node[below] {
+		\dafsmlabel[][{\new[\partyO][\roleO]}][{\functionCF[1]}][][]
 	 }
-  $
-  is deterministic or not, depending on the labels $\alabel[1]$
-  and $\alabel[2]$.
-  %
-  Let us consider some cases.
-  \begin{description}
-  \item[{
-		$\alabel[1] = \alabel[2] = \partyO\triangleright\functionCG()$}]
-	 $\dafsm$ is non-deterministic because a call to function
-	 $\functionCF$ by $\partyO$ can lead either to $\stateS[1]$ or to
-	 $\stateS[2]$.
-  \item[{
-		$\alabel[1] = \new[\partyP][\roleR]\triangleright\functionCG()$
-		\text{and}
-		$\alabel[2] =
-		\any[@][\partyP][\roleR]\triangleright\functionCG()$}] $\dafsm$
-	 is deterministic intuitively because the next state is
-	 unambiguously determined by the caller of $\functionCG$: the protocol
-	 moves to $\stateS[1]$ or $\stateS[2]$ depending whether the call
-	 is performed by an existing or a new participant.
-  \item[{
-	 $\alabel[1] = \{\varX \leq
-	 10\}\;\partyO\triangleright\functionCG(\varX:\IntType)$ and
-	 $\alabel[2] = \{\varX >
-	 10\}\;\partyO\triangleright\functionCG(\varX:\IntType)$}]
-	 $\dafsm$ is deterministic because guard $\varX \leq 10$ leading to
-	 $\stateS[1]$ and guard $\varX > 10$ leading to $\stateS[2]$ are
-	 disjoint; therefore the next state is determined by the value of
-	 the parameter $\varX$, and every value enables at most one
-	 transition.
-  \end{description}
-  Also, taking $\alabel[1]$ as in the latter case and
-  $\alabel[2] = \{\varX \geq
-  10\}\;\partyO\triangleright\functionCG(\varX:\IntType)$ would make
-  $\dafsm$ non-deterministic because the guards of $\alabel[1]$ and of
-  $\alabel[2]$ are not disjoint therefore the next state is not
-  determined by the caller of $\functionCG$.
-  %
-  \finex
-\end{example}
+	 (S1)
+	 (S0) edge[bend left=10] node[above] {
+		\dafsmlabel[][{\new[\partyO][\roleR]}][{\functionCF[2]}][][]
+	 }
+	 (S2)
+	 (S1) edge[bend right=10] node[below] {
+		\dafsmlabel[][\partyO][{\functionCF[2]}][][]
+	 }
+	 (S3)
+	 (S2) edge[bend left=10] node[above] {
+		\dafsmlabel[][\partyO][{\functionCF[2]}][][]
+	 }
+	 (S3)
+	 (S3) edge node {
+		\dafsmlabel[][\partyO][{\functionCF[3]}][][]
+	 }
+	 (S4)
+	 ;
+  \end{tikzpicture}
+  \note{
+	 % 
+	 yes: $\partyO$ is defined on paths it occurs on and the \modelname
+	 is deterministic.
+	 %
+  }
 
-We now define a notion of \emph{strong determinism}, which is
-decidable and can be efficiently established.
-%
-To this aim, we first define the binary relation
-$\partyConfl \subseteq \modParties \times \modParties$ as the least
-symmetric relation satisfying:
-\begin{equation}\label{eq:confl}
-  \new[{\partyP}][{\roleR}]\partyConfl\partyP',
-  \quad
-  \new[{\partyP}][{\roleR}]\partyConfl \any[@][\partyP'][\roleO],
-  \qand
-  \roleR \neq \roleO \implies \any[@][\partyP][\roleR] \partyConfl \any[@][\partyP'][\roleO]
-\end{equation}
-Intuitively, if $\modparty[1]\;\partyConfl\;\modparty[2]$, then the
-participants in $\modparty[1]$ and $\modparty[2]$ \emph{differ}.
-%
-Indeed, the first two item just say that a new participant is
-necessarily different from an existing one. The third item says that
-two participant with different roles are necessarily different (since
-we require that every participant can have at most one role).
+  \vfill
 
-We now define \emph{strong determinism} which basically ensures that
-different transitions calling the same function from a same
-participant have mutually exclusive guards.
-\begin{definition}\label{def:determinism}
-  A \modelname %$\dafsm$ 
-  is \emph{(strongly) deterministic} if for all of its
-  transitions $\transT[1] \neq \transT[2]$ %in $\dafsm$
-  from the same source state and calling the same function we have:
-  \[
-	 (\guardG[1] \land \guardG[2]) \implies (\modparty[1] \partyConfl
-	 \modparty[2])
-  \]
-  where, for $i \in \{1,2\}$, $\guardG[i]$ is the guard of
-  $\transT[i]$ and $\modparty[i]$ is the qualified participant of
-  $\transT[i]$.
-\end{definition}
-
-Finally, we can formalise our notion of well-formedness.
-\begin{definition}\label{def:wellformedness}
-	A \modelname is \emph{well-formed} when empty-role free,
-	consistent, and deterministic.
-\end{definition}
-
-\begin{example}
-  Consider the following well-formed \modelname.
-  \[
-			\begin{tikzpicture}[node distance= 2.5cm, dafsm]
-				\tikzset{
-					every node/.style={
-						rectangle,
-						align=center,
-						thin,
-						scale=.8,
-						font=\ttfamily
-					},
-					every path/.style={
-						draw,
-						thick,
-						rounded corners,
-						-latex
-					}
-				}
-				\node[state] (S0)      {$\stateS[0]$};
-				\node[state,draw=none] (S_) [left of=S0, xshift=-1cm] {};
-				\node[state,draw=none] (SC) [right of=S0] {};
-				\node[state] (S1) [above=of SC, yshift=-3cm, xshift=.5cm] {$\stateS[1]$};
-				\node[state] (S2) [below=of SC, yshift=3cm, xshift=.5cm] {$\stateS[2]$};=
-				\node[state] (S3) [right=of SC] {$\stateS[3]$};
-				\node[state,accepting] (S4) [right= of S3] {$\stateS[4]$};
-				
-				\path
-				(S_) edge node {
-					$\new[\partyB][\roleB]\triangleright\init(\contractC)\;$} 
-				(S0)
-				(S0) edge[bend left=10] node {$
-					\new[\partyO][\roleO]\triangleright\functionCF[1]()\;
-					$} (S1)
-				(S0) edge[bend right=10] node[below] {$
-						\new[\partyO][\roleR]\triangleright\functionCF[2]()\;
-					$} (S2)
-				(S1) edge[bend left=10] node {$
-					 \partyO\triangleright\functionCF[2]()
-					$} (S3)
-				(S2) edge[bend right=10] node[below] {$
-					 \partyO\triangleright\functionCF[2]()
-					$} (S3)
-				(S3) edge node {
-					$\partyO\triangleright\functionCF[3]()\;$} 
-				(S4);			
-			\end{tikzpicture}
-		 \]
-
-		 In fact, it is easy to see that all $\partyO$ is defined on each
-		 transition to and from state $\stateS[3]$, there are no
-		 (undefined) variables, and that consistency trivially holds.
-		 %
-		 \finex
-\end{example}
-
-	\begin{example}\label{ex:semactic-correct}
-	  The following \modelname is not well-formed
-%		\[\dafsm[5] = \raisebox{6pt}{
-%			\begin{tikzpicture}[node distance= 3cm, dafsm]
-%				\tikzset{
-%					every node/.style={
-%						rectangle,
-%						align=center,
-%						thin,
-%						scale=.8,
-%						font=\ttfamily
-%					},
-%					every path/.style={
-%						draw,
-%						thick,
-%						rounded corners,
-%						-latex
-%					}
-%				}
-%				\node[state] (S0)      {$\stateS[0]$};
-%				\node[state,draw=none] (S_) [left of=S0] {};
-%				\node[state] (S1) [right=of S0] {$\stateS[1]$};
-%				
-%				\node(dummy1)[state,draw=none] [above of=S1, yshift=-2.1cm] {};
-%				\node(dummy2)[state,draw=none] [below of=S1, yshift=2.1cm] {};
-%				
-%				\node[state,accepting] (S2) [right of=dummy1, yshift=-2cm, xshift =2cm] {$\stateS[2]$};
-%				\node[state,accepting] (S3) [right of=dummy2, yshift=2cm, xshift = 2cm] {$\stateS[3]$};
-%				
-%				\path
-%				(S_) edge node {
-%					$\new[\partyB][\roleB]\triangleright\init(\contractC)\;$} (S0)
-%				(S0) edge node {
-%					$\ \any[@][\partyB_2][\roleB] \triangleright\functionCF[1]()$} (S1);
-%				
-%				\path[-] (S1) -- (dummy1.center);
-%				\path[-] (S1) -- (dummy2.center);
-%				\path
-%				(dummy1.center) |-	(S2);
-%				
-%				\path
-%				(dummy2.center) |-	(S3);
-%				
-%				
-%				\node(dummy21c)[right = .3cm of dummy1, yshift = 0.5cm]{
-%					$ \partyB\triangleright\functionCF[2]()$
-%				};
-%				\node(dummy21c)[right = .3cm of dummy2]{
-%					$ \partyB_2\triangleright\functionCF[2]()$
-%				};
-%				
-%				\node[state] (S1) [right=of S0] {$\stateS[1]$};
-%				
-%			\end{tikzpicture}
-%		}
-%		\]
-	  \[
-		 \begin{tikzpicture}[node distance= 2cm, dafsm]
-				
-				\node[state] (S0)      {$\stateS[0]$};
-				\node[state,draw=none] (S_) [left of=S0, xshift = -2.5cm] {};
-				\node[state] (S1) [right=of S0] {$\stateS[1]$};
-				\node[state,accepting] (S2) [right of=S1 , xshift = 1cm] {$\stateS[2]$};
-				
-				\path
-				(S_) edge node {
-					$\new[\partyO][\roleO]\triangleright\init(\contractC)\;\{\varCX := 1\}$} (S0)
-				(S0) edge node {
-					$ \partyO\triangleright\functionCF[1]()$} (S1)
-				(S1) edge node {
-					$\{\mathsf{\varCX > 0}\}\;\partyO\triangleright\functionCF[2]()$}
-				(S2);
-			\end{tikzpicture}
-		\]
-		in fact, the transition from $\stateS[0]$
+  \begin{tikzpicture}[dafsm, node distance= 3cm]
+	 \node[state] (S0)      {$\stateS[0]$};
+	 \node[] (S_) [left of=S0, xshift = -2.5cm] {};
+	 \node[state] (S1) [right=of S0] {$\stateS[1]$};
+	 \node[state,accepting] (S2) [right of=S1 , xshift = 1cm] {$\stateS[2]$};
+	 %
+	 \path
+	 (S_) edge node {
+		\dafsmlabel[][{\new[\partyO][\roleO]}][\init][\contractC][\{\varCX := 1\}]
+	 }
+	 (S0)
+	 (S0) edge node {
+	  	\dafsmlabel[][\partyO][{\functionCF[1]}][][]
+	 }
+	 (S1)
+	 (S1) edge node {
+		\dafsmlabel[\varCX > 0][\partyO][{\functionCF[2]}][][]
+	 }
+	 (S2)
+	 ;
+  \end{tikzpicture}
+  \note{\\[1em]
+	 no: the transition from $\stateS[0]$
 		violates~\cref{def:consistency} since $\mathsf{True}$ does not
 		imply $\varCX > 0$ hinting that the protocol could get stuck in
 		state $\stateS[1]$.
@@ -544,6 +385,15 @@ Finally, we can formalise our notion of well-formedness.
     never happens because $\varCX$ is initially set to $1$
 		and never changed, hence the transition from $\stateS[1]$ would be enabled
 		when the protocol lands in $\stateS[1]$.
+		%
+	 }
+\end{frame}
+\hidden{
+
+	\begin{example}\label{ex:semactic-correct}
+	  The following \modelname is not well-formed
+	  \[
+		\]
 	  %
 		\finex
 	\end{example}

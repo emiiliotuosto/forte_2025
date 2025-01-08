@@ -1,3 +1,174 @@
+\begin{frame}{Verification}
+Checking well-formedness by hand is laborious and cumbersome
+
+\vfill
+
+So we implemented \thetool, which
+
+\mytab transforms \modelnames in a DSL to specify \modelnames
+
+\mytab verifies well-formedness condition relying on the SMT solver Z3
+\end{frame}
+
+\begin{frame}{The architecture of \thetool}
+  %
+  \note<1>{
+	 %
+	 the architecture of \thetool is compartmentalised into two principal modules:
+	 \\
+	 parsing and visualisation (yellow box) and
+	 \\
+	 \thetool's core (orange box).
+	 %
+	 The latter module implements well-formedness check (green box).
+	 %
+	 Solid arrows represent calls between components while dashed
+	 arrows data IO.
+	 %
+  }
+  \begin{tikzpicture}[node distance = .6cm and 1.1cm, remember picture]
+	 % nodes
+	 \node(txt) [data, minimum width=1.3cm] {\startingFile};
+	 \node(ggen) [used, right = of txt] {\graphGen};
+	 \node(vald) [dev, below = of txt, minimum width=1.3cm, yshift = -0.2cm] {\validator};
+	 \node(call) [dev, below right = of ggen] {\callerChecker};
+	 \node(nd) [dev, below = of call, yshift =.1cm, minimum width=2.2cm] {\detChecker};
+	 \node(build) [dev, right = of nd] {\formulaBuilder};
+	 \node(z3) [data, above = of build, yshift=.8cm] {\ztModel};
+	 \node(zrun) [used, right = 1cm of z3] {\ztRunner};
+	 % \node(toj) [dev, below = of json] {\toParser};
+	 \node(gri) [dev, right = of vald, xshift = -0.2cm, yshift = -1cm] {\trGrinder};
+	 \node(acons) [dev, below = of nd, minimum width=2.2cm] {\aConsistency};
+	 \node(an) [dev, right = of acons, yshift = -.7cm] {\ztModelAnalyzer};
+	 \node(verdict) [output, right = of an, xshift =-.5cm] {\analysisVerdict};
+	 \node(vfms) [output, above = of zrun] {\fsmImage};
+	 % edges
+	 \path[dashed] (txt) -- (vald);
+	 \path[dashed] (ggen.north) |- (vfms.west);
+	 \path[dashed] (an) -- (verdict);
+	 \node(dummy)[right = .3cm of vald]{};
+	 \path[-, dashed] (vald) -- (dummy.center);
+	 \path[dashed] (dummy.center) |- (ggen);
+	 \path[dashed] (dummy.center) |- (gri);
+	 %
+	 \node(dummy2)[right = .3cm of gri]{};
+	 %
+	 \path[-] (gri) -- (dummy2.center);
+	 \path (dummy2.center) |- (call);
+	 \path (dummy2.center) -- (nd);
+	 \path (dummy2.center) |- (acons);
+	 %
+	 \node(dummy21c)[above = .3cm of dummy2]{\mkNode{1}};
+	 \node(dummy21d)[below = .35cm  of dummy21c]{\mkNode{2}};
+	 \node(dummy21a)[below = .5cm of dummy2]{\mkNode{3}};
+	 \node(dummy3)[right = .3cm of nd]{};
+	 %
+	 \path [dashed] (dummy3.center) -- (build);
+	 \path[-, dashed] (call.east) -| (dummy3.center);
+	 \path[-, dashed] (nd.east) -- (dummy3.center);
+	 \path[-, dashed] (acons.east) -| (dummy3.center);
+	 %
+	 \path[dashed] (build) -- (z3);
+	 \path[dashed] (z3) -- (zrun);
+	 \node(dummy4)[right = .3cm of build,yshift = -.4cm]{};
+	 \path[-] (zrun) |- (dummy4.center);, dashed
+	 \path (dummy4.center) -| (an.north);
+	 % Boxes
+	 \begin{pgfonlayer}{background}
+		\node[fit = (call) (nd) (acons),
+		fill=green!70,
+		opacity=.7,
+		rounded corners,
+		minimum width =2.8cm,
+		minimum height = 3cm
+		] {};
+	 \end{pgfonlayer}
+	 \begin{pgfonlayer}{background}
+		\node[xshift =.35cm, fit = (dummy) (call) (acons) (build),
+		fill=orange,
+		opacity=.5,
+		rounded corners,
+		minimum width = 8.5cm,
+		minimum height = 3.2cm,
+		% label={[xshift=-3.5cm,yshift=-1cm, black] above:{\huge$\mathbf\circlearrowleft$}}
+		] (ext){};
+	 \end{pgfonlayer}
+	 \draw [-stealth, very thin, double] (2.2,-1.3) arc(-160:140:.2);
+	 \begin{pgfonlayer}{background}
+		\node[fit = (vald) (call) (z3) (an.south east) (dummy4),
+		fill=yellow!30,
+		opacity=.5,
+		rounded corners,
+		minimum width = 11.5cm,
+		minimum height = 4.3cm,
+		% label={[xshift=-4cm,yshift=.5cm] below:{\thetool's core}}
+		] {};
+	 \end{pgfonlayer}
+	 % Call outs
+	 \node<2> [calloutnote, below = of vald, ball color=yellow, callout absolute pointer=(vald.south east)] {Syntactic checks};
+	 %
+	 \note<2>{basic syntactic checks on a DSL representation of
+		\modelnames and transforming the input in a format that
+		simplifies the analysis of the following phases:
+		%
+		\begin{itemize}
+		\item passed to \graphGen for visual
+		  representation of \modelnames (\fsmImage\ output)
+		\item passed to the \trGrinder
+		  component (orange box) for well-formedness checking.
+	 \end{itemize}
+  }
+  %
+  \node<3> [calloutnote, below = of gri, text width=3.5cm, ball color=orange!70, callout absolute pointer=(gri.south west)] {Well-formedness (iterative)};
+  \node<4> [calloutnote, below = of acons, xshift=1cm, yshift=1cm,, ball color=orange!70, callout absolute pointer=(acons.west)] {Z3 model};
+  \note<4>{
+	 %
+	 \aConsistency\ (arrow \mkNode{3}) to generate a Z3 formula which
+	 holds if, and only if, the transtion is consistent.
+	 %
+  }
+  \node<5> [calloutnote, below = of acons, xshift=1cm, yshift=1cm, ball color=orange!70, callout absolute pointer=(build.west)] {Z3 model};
+  \note<5>{
+	 %	 
+	 computes the z3 f.la equivalent to the conjunction of the outputs which is then passed to a Z3 engine to check its satisfiability
+  }
+  \node<6> [calloutnote, below = .1cm of verdict, ball color=teal!50, callout absolute pointer=(an.east)] {analysis};
+  \note<6>{
+	 Finally, the \ztModelAnalyzer\ component
+	 that diagnoses the output of Z3 and produces a \analysisVerdict\
+	 which reports (if any) the violations of well-formedness of the
+	 \modelname in input.
+	 %
+  }
+  \end{tikzpicture}
+\end{frame}
+
+% \newcommand{\code}[1]{%\ \\\mytab \tt #1
+%   \begin{block}{} #1 \end{block}}
+
+\newenvironment<>{code}[2][]{%
+  \setbeamercolor{block title}{fg=green,bg=black}%
+  \setbeamerfont{block body}{family=\ttfamily}
+  \setbeamercolor{block body}{fg=green,bg=black}
+  \setbeamertemplate{block body code}[rose]
+  \begin{block}{#1}#3{#2}
+  }{\end{block}}
+
+
+\begin{frame}[fragile]{Installation}
+  Detailed instructions at \url{https://github.com/loctet/TRAC}
+
+  \vfill
+  
+  Dependencies: Java RE (to render \modelname graphically) \& Python 3.6 or later
+  %
+%  \code{pip install z3-solver matplotlib numpy plotly pandas networkx}
+  \note{forse servono solo solo z3-solver e networkx \\ https://doi.org/10.5281/zenodo.10996456}
+
+  \begin{code}{}
+	 pip install z3-solver matplotlib numpy plotly pandas networkx
+  \end{code}
+\end{frame}
 
 %%% Local Variables:
 %%% mode: LaTeX
